@@ -1,0 +1,77 @@
+<?php
+session_start();
+if(!isset($_SESSION['admin'])){
+    header("Location: login.html");
+    exit();
+}
+require 'backend/db.php';
+
+// Fetch all users
+$users_result = $conn->query("SELECT id, fullname, email, balance FROM users");
+
+// Fetch all transactions
+$transactions_result = $conn->query("SELECT t.id, u.fullname, t.type, t.amount, t.date 
+                                    FROM transactions t 
+                                    JOIN users u ON t.user_id = u.id
+                                    ORDER BY t.date DESC");
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Matric Miners</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <h1>Admin Panel</h1>
+  <a href="backend/logout.php">Logout</a>
+
+  <section>
+    <h2>All Users</h2>
+    <table border="1" cellpadding="10" cellspacing="0">
+      <tr>
+        <th>ID</th>
+        <th>Full Name</th>
+        <th>Email</th>
+        <th>Balance</th>
+        <th>Actions</th>
+      </tr>
+      <?php while($user = $users_result->fetch_assoc()): ?>
+      <tr>
+        <td><?php echo $user['id']; ?></td>
+        <td><?php echo $user['fullname']; ?></td>
+        <td><?php echo $user['email']; ?></td>
+        <td>$<?php echo number_format($user['balance'],2); ?></td>
+        <td>
+          <a href="backend/admin.php?action=reset&id=<?php echo $user['id']; ?>">Reset Balance</a> |
+          <a href="backend/admin.php?action=delete&id=<?php echo $user['id']; ?>">Delete User</a>
+        </td>
+      </tr>
+      <?php endwhile; ?>
+    </table>
+  </section>
+
+  <section>
+    <h2>All Transactions</h2>
+    <table border="1" cellpadding="10" cellspacing="0">
+      <tr>
+        <th>ID</th>
+        <th>User</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Date</th>
+      </tr>
+      <?php while($tx = $transactions_result->fetch_assoc()): ?>
+      <tr>
+        <td><?php echo $tx['id']; ?></td>
+        <td><?php echo $tx['fullname']; ?></td>
+        <td><?php echo $tx['type']; ?></td>
+        <td>$<?php echo number_format($tx['amount'],2); ?></td>
+        <td><?php echo $tx['date']; ?></td>
+      </tr>
+      <?php endwhile; ?>
+    </table>
+  </section>
+</body>
+</html>
